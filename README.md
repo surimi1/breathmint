@@ -26,6 +26,7 @@ The following command line options are supported:
 - python breathmint.py -d ~/Documents/burp/output/ -e info,Low
 - python breathmint.py -d . -o just_critical_high_medium -i high,MED,cRiTiCaL
 - python breathmint.py -f some_burp_file.xml -e Informational,Low,Medium -i Critical,High,Medium
+- python breathmint.py -f some_burp_file.xml -c output.csv
 
 ## Author
 Matthew Flick
