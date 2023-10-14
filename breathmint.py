@@ -581,12 +581,10 @@ if __name__ == '__main__':
 			csv_filename = args.c
 			print("Saving parsed data as CSV:", csv_filename)
 			try:
-				# Collect all unique field names from the dictionaries
-				fieldnames = set()
-				for issue in all_issues:
-					fieldnames.update(issue.keys())
+				# Define the desired order of fields in the CSV
+				field_order = ["Product Name", "Serial Number", "Vulnerability Name", "Background", "Remediation", "References", "Classification", "Risk", "Confidence", "Severity", "IP", "URI", "FQDN", "Port", "Protocol", "Path", "Location", "Target Details", "Issue Details", "Request Response"]
 				with open(csv_filename, mode='w', newline='') as csv_file:
-					writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+					writer = csv.DictWriter(csv_file, fieldnames=field_order)
 					writer.writeheader()
 					for issue in all_issues:
 						writer.writerow(issue)
