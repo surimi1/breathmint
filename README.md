@@ -32,6 +32,5 @@ The following command line options are supported:
 - python breathmint.py -f some_burp_file.xml -c output.csv -p "Web Application 1"
 
 ## Author
-Matthew Flick
-
+Matthew Flick 
 Surimi1
