@@ -11,6 +11,7 @@ breathmint breathmint, excelsify, and make_me_pretty use the following Python mo
 - xlsxwriter
 - bs4
 - lxml (required by the bs4 module)
+- csv
 
 ## Usage
 The following command line options are supported:
@@ -20,6 +21,7 @@ The following command line options are supported:
 - "-i <include_risk_list>" : ('-i <comma,separated,list>') List of severity ratings to include in output; partial starting characters accepted; no spaces (default == include all).
 - "-o <filename_base>" : Base name of output file to which you want the parsed results to be written; "--parsed--(<YYYYMMDD_HHMM>).xlsx" is added automatically
 - "-c <filename_csv>": Save all fields as CSV and skip XLSX output steps.
+- "-p <project_name>": The project name to be used for this export job.
 
 ## Usage Examples
 - python breathmint.py -d . -o combined_output
@@ -27,6 +29,7 @@ The following command line options are supported:
 - python breathmint.py -d . -o just_critical_high_medium -i high,MED,cRiTiCaL
 - python breathmint.py -f some_burp_file.xml -e Informational,Low,Medium -i Critical,High,Medium
 - python breathmint.py -f some_burp_file.xml -c output.csv
+- python breathmint.py -f some_burp_file.xml -c output.csv -p "Web Application 1"
 
 ## Author
 Matthew Flick
