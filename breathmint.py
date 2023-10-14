@@ -241,6 +241,7 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 					#
 					customer_organization = args.customer_organization
 					product_name = args.p if args.p else ""  # Get the Product Name from the command-line argument
+					environment_name = args.environment if args.environment else ""
 					serial_number = str(issue_count)
 					if not issue.find('serialNumber') == None:
 						serial_number = issue.find('serialNumber').text
@@ -403,6 +404,7 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 						#
 						new_issue['Customer Organization'] = customer_organization
 						new_issue['Product Name'] = product_name
+						new_issue['Environment'] = environment_name
 						new_issue['Remediation'] = remediation
 						new_issue['References'] = references
 						new_issue['Classification'] = classification
@@ -463,6 +465,8 @@ if __name__ == '__main__':
 		"-p", help="Product Name to use for the fields in this export job")
 	parser.add_argument(
 		"-co", "--customer_organization", help="Customer Organization")
+	parser.add_argument(
+		"-env", "--environment", help="Environment Name (e.g., production, staging, development)")
 	args = parser.parse_args()
 
 	print("\n\n" + breathmint_logo() + "\n\nRunning breathmint\n...\n")
@@ -584,7 +588,7 @@ if __name__ == '__main__':
 			print("Saving parsed data as CSV:", csv_filename)
 			try:
 				# Define the desired order of fields in the CSV
-				field_order = ["Customer Organization", "Product Name", "Serial Number", "Vulnerability Name", "Background", "Remediation", "References", "Classification", "Risk", "Confidence", "Severity", "IP", "URI", "FQDN", "Port", "Protocol", "Path", "Location", "Target Details", "Issue Details", "Request Response"]
+				field_order = ["Customer Organization", "Product Name", "Environment", "Serial Number", "Vulnerability Name", "Background", "Remediation", "References", "Classification", "Risk", "Confidence", "Severity", "IP", "URI", "FQDN", "Port", "Protocol", "Path", "Location", "Target Details", "Issue Details", "Request Response"]
 				with open(csv_filename, mode='w', newline='') as csv_file:
 					writer = csv.DictWriter(csv_file, fieldnames=field_order)
 					writer.writeheader()
