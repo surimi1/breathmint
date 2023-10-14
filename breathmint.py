@@ -239,6 +239,7 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 					# references <-> references
 					# classification <-> vulnerabilityClassifications
 					#
+					product_name = args.p if args.p else ""  # Get the Product Name from the command-line argument
 					serial_number = str(issue_count)
 					if not issue.find('serialNumber') == None:
 						serial_number = issue.find('serialNumber').text
@@ -401,7 +402,7 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 						#
 						# might be fun to determine a product name for common apps, but that is for another day
 						# just a placeholder for now
-						new_issue['Product Name'] = ""
+						new_issue['Product Name'] = product_name
 						new_issue['Remediation'] = remediation
 						new_issue['References'] = references
 						new_issue['Classification'] = classification
@@ -458,6 +459,8 @@ if __name__ == '__main__':
 	# Add a command-line option for CSV output
 	parser.add_argument(
 	    "-c", help="Save parsed data (only the issues, not charts) as CSV file")
+	parser.add_argument(
+		"-p", help="Product Name to use for the fields in this export job")
 	args = parser.parse_args()
 
 	print("\n\n" + breathmint_logo() + "\n\nRunning breathmint\n...\n")
