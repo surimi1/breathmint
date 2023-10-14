@@ -17,7 +17,9 @@ These instructions will help you get started with using the Burp Suite XML Parse
 ### Prerequisites
 
 Specified in requirements.txt
+```bash
 pip3 install -r requirements.txt
+```
 
 ### Usage
 Available command-line arguments:
