@@ -1,0 +1,4 @@
+argparse
+xlsxwriter
+bs4
+lxml
