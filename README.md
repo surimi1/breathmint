@@ -19,6 +19,7 @@ The following command line options are supported:
 - "-e <exclude_risk_list>" : ('-e <comma,separated,list>') List of risk ratings to exclude from output; partial starting characters accepted; no spaces (default == none excluded).
 - "-i <include_risk_list>" : ('-i <comma,separated,list>') List of severity ratings to include in output; partial starting characters accepted; no spaces (default == include all).
 - "-o <filename_base>" : Base name of output file to which you want the parsed results to be written; "--parsed--(<YYYYMMDD_HHMM>).xlsx" is added automatically
+- "-c <filename_csv>": Save all fields as CSV and skip XLSX output steps.
 
 ## Usage Examples
 - python breathmint.py -d . -o combined_output
