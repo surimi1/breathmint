@@ -33,4 +33,5 @@ The following command line options are supported:
 
 ## Author
 Matthew Flick
+
 Surimi1
