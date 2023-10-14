@@ -1,4 +1,4 @@
-# breathmint
+# breathmint (Surimi1 fork)
 breathmint, A Refreshing Burp Parser
 
 breathmint is a python script that will parse one or more .xml files and produce a spreadsheet (Excel ".xlsx" format) as output. Most of the output generation is done in the other python scripts that breathmint uses: "excelsify.py" and "make_me_pretty.py". By default, there are two worksheets in the workbook output file:
