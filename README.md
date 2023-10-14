@@ -11,6 +11,7 @@ breathmint breathmint, excelsify, and make_me_pretty use the following Python mo
 - xlsxwriter
 - bs4
 - lxml (required by the bs4 module)
+- csv
 
 ## Usage
 The following command line options are supported:
