@@ -11,7 +11,8 @@ breathmint
 		a. create_worksheet_data() for each worksheet you wish to include in the workbook
 			i. make a list of column names to be included in the worksheet (output_column_names)
 			ii. create_worksheet_data(output_column_names=output_column_names, issue_data_list=all_issues) -> returns dictionary; use as input to "excelsify_worksheet_data"
-		b. excelsify.create_workbook(worksheet_data=excelsify_worksheet_data, out_filename=excelsify_workbook_name)
+		b. excelsify.create_workbook(
+		    worksheet_data=excelsify_worksheet_data, out_filename=excelsify_workbook_name)
 '''
 
 #
@@ -28,6 +29,7 @@ import sys
 import re
 import html
 import unicodedata
+import csv
 
 #
 #
@@ -43,8 +45,10 @@ import make_me_pretty
 #
 #
 RISK_VALUES = ["Critical", "High", "Medium", "Low", "Informational"]
-RISK_SYNONYM_MAPPING = {'None':"Informational", 'Info':"Informational", 'Information':"Informational", 'Moderate':"Medium"}
-SORT_ORDER_RISK = {"Critical":0, "High":1, "Medium":2, "Low":3, "Informational":4}
+RISK_SYNONYM_MAPPING = {'None': "Informational", 'Info': "Informational",
+    'Information': "Informational", 'Moderate': "Medium"}
+SORT_ORDER_RISK = {"Critical": 0, "High": 1,
+    "Medium": 2, "Low": 3, "Informational": 4}
 
 #
 #
@@ -54,11 +58,13 @@ SORT_ORDER_RISK = {"Critical":0, "High":1, "Medium":2, "Low":3, "Informational":
 
 #
 #
-#	breathmint_logo
+# breathmint_logo
 #
-#		tis a silly little function to return a logo as a string
+# tis a silly little function to return a logo as a string
 #
 #
+
+
 def breathmint_logo():
 	try:
 		retval = ""
@@ -101,9 +107,9 @@ def breathmint_logo():
 
 #
 #
-#	find_burp_output
+# find_burp_output
 #
-#		find all Burp output files in the given directory
+# find all Burp output files in the given directory
 #
 #
 def find_burp_output(directory):
@@ -126,53 +132,53 @@ def find_burp_output(directory):
 
 #
 #
-#	parse_atags_in_html_string
+# parse_atags_in_html_string
 #
-#		get the url and displaytext from the html string
-#		useful for the references and classification content in Burp XML output
+# get the url and displaytext from the html string
+# useful for the references and classification content in Burp XML output
 #
-#		the references item is a single string containing HTML tags: <ul>, <li>, <a>
-#		e.g.
-#			<ul>
-#			<li><a href="https://developer.mozilla.org/en-US/docs/Web/Security/HTTP_strict_transport_security">HTTP Strict Transport Security</a></li>
-#			<li><a href="http://www.thoughtcrime.org/software/sslstrip/">sslstrip</a></li>
-#			<li><a href="https://hstspreload.appspot.com/">HSTS Preload Form</a></li>
-#			</ul>
-#		e.g.
-#			<ul><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options">X-Frame-Options</a></li></ul>
+# the references item is a single string containing HTML tags: <ul>, <li>, <a>
+# e.g.
+# <ul>
+# <li><a href="https://developer.mozilla.org/en-US/docs/Web/Security/HTTP_strict_transport_security">HTTP Strict Transport Security</a></li>
+# <li><a href="http://www.thoughtcrime.org/software/sslstrip/">sslstrip</a></li>
+# <li><a href="https://hstspreload.appspot.com/">HSTS Preload Form</a></li>
+# </ul>
+# e.g.
+# <ul><li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/X-Frame-Options">X-Frame-Options</a></li></ul>
 #
-#		parameters:
-#			html_string - something that looks like the examples above
+# parameters:
+# html_string - something that looks like the examples above
 #
-#		returns:
-#			[{'url':"<<url_0>>", 'displaytext':"<<displaytext_0>>"}, ..., {'url':"<<url_n>>", 'displaytext':"<<displaytext_n>>"}]
+# returns:
+# [{'url':"<<url_0>>", 'displaytext':"<<displaytext_0>>"}, ..., {'url':"<<url_n>>", 'displaytext':"<<displaytext_n>>"}]
 #
 #
 def parse_atags_in_html_string(html_string):
 	retval = []
 	try:
 		html_string = html_string.strip()
-		#	remove both opening and closing HTML list tags (<ul>, </ul>, <li>, </li>)
+		# remove both opening and closing HTML list tags (<ul>, </ul>, <li>, </li>)
 		html_string = re.sub(r'</*ul>', '', html_string)
 		html_string = re.sub(r'</*li>', '', html_string)
-		#	split at the </a> closing tags
+		# split at the </a> closing tags
 		html_string_list = html_string.split('</a>')
 		for each_reference in html_string_list:
 			each_reference = each_reference.strip()
 			if len(each_reference) > 0:
-				#	remove the <a part of opening tag including the href syntax
-				#	either single quote or double quote might be used so just remove both
-				#		there's a single regex that could do this, but i don't feel like searching stackoverflow for it
+				# remove the <a part of opening tag including the href syntax
+				# either single quote or double quote might be used so just remove both
+				# there's a single regex that could do this, but i don't feel like searching stackoverflow for it
 				each_reference = re.sub(r'<a href="', '', each_reference)
-				each_reference = re.sub(r"<a href='", '', each_reference)
-				#	then split at the "> characters to separate the URL from the user-friendly link display text
+				# then split at the "> characters to separate the URL from the user-friendly link display text
+				each_reference = re.sub(r"<a href='", ' ', each_reference)
 				url_displaytext_split = each_reference.split('">')
-				#	and in case '> was used instead of ">, do this:
+				# and in case '> was used instead of ">, do this:
 				if len(url_displaytext_split) == 1:
 					url_displaytext_split = each_reference.split("'>")
 				url = url_displaytext_split[0].strip()
 				displaytext = url_displaytext_split[1].strip()
-				retval.append({'url':url, 'displaytext':displaytext})
+				retval.append({'url': url, 'displaytext': displaytext})
 	except Exception as e:
 		print('\n==== Exception ====\n  breathmint.parse_atags_in_html_string()\n----')
 		print(e)
@@ -183,20 +189,20 @@ def parse_atags_in_html_string(html_string):
 
 #
 #
-#	parse_files
+# parse_files
 #
-#		parse the given file list
+# parse the given file list
 #
-#		parameters:
-#			file_list - list of files; output from find_burp_output function
-#			risk_excluded - specifically excluded risk ratings
-#							will check for both the Burp "severity" value and the mapped values in RISK_SYNONYM_MAPPING[severity]
-#							will continue to next issue if the current issue has a matching risk value
-#			risk_included - specifically included risk ratings
-#							if empty list then all will be included
+# parameters:
+# file_list - list of files; output from find_burp_output function
+# risk_excluded - specifically excluded risk ratings
+# will check for both the Burp "severity" value and the mapped values in RISK_SYNONYM_MAPPING[severity]
+# will continue to next issue if the current issue has a matching risk value
+# risk_included - specifically included risk ratings
+# if empty list then all will be included
 #
-#		returns:
-#			all_issues - see the comment in the __main__ function for details
+# returns:
+# all_issues - see the comment in the __main__ function for details
 #
 #
 def parse_files(file_list, risk_excluded=[], risk_included=[]):
@@ -207,29 +213,31 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 			print("Parsing: " + str(file) + "\n...")
 			try:
 				#
-				#	Get XML tree/root
+				# Get XML tree/root
 				tree = ET.parse(file)
 				root = tree.getroot()
 				#
-				#	"maximum effort" to verify this is actually a Burp xml file
-				#		- Deadpool
+				# "maximum effort" to verify this is actually a Burp xml file
+				# - Deadpool
 				try:
 					burp_version = root.get('burpVersion')
 					if (burp_version == None or burp_version == ""):
-						print("Warning: parse_files: the file \"" + str(file) + "\" does not appear to be a Burp xml issue export file")
+						print("Warning: parse_files: the file \"" + str(file) +
+						      "\" does not appear to be a Burp xml issue export file")
 						continue
 				except:
-					print("Warning: parse_files: the file \"" + str(file) + "\" does not appear to be a Burp xml issue export file")
+					print("Warning: parse_files: the file \"" + str(file) +
+					      "\" does not appear to be a Burp xml issue export file")
 					continue
 				issue_count = 0
 				for issue in root.findall('issue'):
 					#
-					#	Generic issue data mapping (breathmint <-> burp.xml):
-					#		serial_number <-> serialNumber
-					#		background <-> issueBackground
-					#		remediation <-> remediationBackground
-					#		references <-> references
-					#		classification <-> vulnerabilityClassifications
+					# Generic issue data mapping (breathmint <-> burp.xml):
+					# serial_number <-> serialNumber
+					# background <-> issueBackground
+					# remediation <-> remediationBackground
+					# references <-> references
+					# classification <-> vulnerabilityClassifications
 					#
 					serial_number = str(issue_count)
 					if not issue.find('serialNumber') == None:
@@ -251,26 +259,30 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 						remediation_detail = issue.find('remediationDetail').text
 						if (not remediation_detail == None and not remediation_detail == ""):
 							remediation_detail = unicodedata.normalize("NFKD", remediation_detail)
-							remediation_detail = make_me_pretty.fix_spacing_issues(contents=remediation_detail)
-							remediation_detail = make_me_pretty.remove_lxml_markup(contents=remediation_detail)
+							remediation_detail = make_me_pretty.fix_spacing_issues(
+							    contents=remediation_detail)
+							remediation_detail = make_me_pretty.remove_lxml_markup(
+							    contents=remediation_detail)
 							if (not remediation_detail == "" and not remediation_detail == "Enter Remediation Detail..."):
 								remediation += "\n" + remediation_detail
 					references = []
 					if not issue.find('references') == None:
-						parsed_atags = parse_atags_in_html_string(html_string=issue.find('references').text)
-						#	let's just keep the actual URLs, not the display text
+						parsed_atags = parse_atags_in_html_string(
+						    html_string=issue.find('references').text)
+						# let's just keep the actual URLs, not the display text
 						for atag_dict in parsed_atags:
 							references.append(atag_dict['url'])
 					classification = []
 					if not issue.find('vulnerabilityClassifications') == None:
-						parsed_atags = parse_atags_in_html_string(html_string=issue.find('vulnerabilityClassifications').text)
-						#	let's just keep the actual URLs, not the display text
+						parsed_atags = parse_atags_in_html_string(
+						    html_string=issue.find('vulnerabilityClassifications').text)
+						# let's just keep the actual URLs, not the display text
 						for atag_dict in parsed_atags:
 							classification.append(atag_dict['url'])
 					#
-					#	Modifiable issue data mapping (breathmint <-> burp.xml):
-					#		severity <-> severity
-					#		confidence <-> confidence
+					# Modifiable issue data mapping (breathmint <-> burp.xml):
+					# severity <-> severity
+					# confidence <-> confidence
 					#
 					severity = ""
 					risk = ""
@@ -290,15 +302,15 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 						if not issue.find('confidence') == None:
 							confidence = issue.find('confidence').text
 						#
-						#	Target data mapping (breathmint <-> burp.xml):
-						#		ip <-> host ip
-						#		uri <-> host
-						#		port <-> None (port is determined using uri value)
-						#		path <-> path
-						#		location <-> location
+						# Target data mapping (breathmint <-> burp.xml):
+						# ip <-> host ip
+						# uri <-> host
+						# port <-> None (port is determined using uri value)
+						# path <-> path
+						# location <-> location
 						#
-						#	note: ip and uri is in the <host> tag with the following format:
-						#			<host ip="10.1.2.3">https://www.example.org</host>
+						# note: ip and uri is in the <host> tag with the following format:
+						# <host ip="10.1.2.3">https://www.example.org</host>
 						#
 						ip = issue.find('host').get('ip')
 						uri = issue.find('host').text
@@ -317,7 +329,8 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 							elif uri_split[0] == "https":
 								port = "443"
 							else:
-								print("TODO: add default port number assignment to the code; protocol observed:", uri_split[0])
+								print(
+								    "TODO: add default port number assignment to the code; protocol observed:", uri_split[0])
 						path = ""
 						if not issue.find('path') == None:
 							path = issue.find('path').text
@@ -325,15 +338,15 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 						if not issue.find('location') == None:
 							location = issue.find('location').text
 						#
-						#	sometimes burp results put the same value in path and location, in which case it seems like location is really just the path
+						# sometimes burp results put the same value in path and location, in which case it seems like location is really just the path
 						if location == path:
 							location = ""
 						#
-						#	Additional details data mapping (breathmint <-> burp.xml):
-						#		target_details <-> issueDetailItems
-						#		issue_details <-> issueDetail
-						#		issue_details <-> issueDetailItems (list with all issueDetail text)
-						#		requestresponse <-> requestresponse
+						# Additional details data mapping (breathmint <-> burp.xml):
+						# target_details <-> issueDetailItems
+						# issue_details <-> issueDetail
+						# issue_details <-> issueDetailItems (list with all issueDetail text)
+						# requestresponse <-> requestresponse
 						#
 						target_details = []
 						if not issue.find('issueDetailItems') == None:
@@ -344,8 +357,10 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 							issue_details = issue.find('issueDetail').text
 							issue_details = unicodedata.normalize("NFKD", issue_details)
 							issue_details = re.sub('&nbsp;', '', issue_details)
-							issue_details = make_me_pretty.fix_spacing_issues(contents=issue_details)
-							issue_details = make_me_pretty.remove_lxml_markup(contents=issue_details)
+							issue_details = make_me_pretty.fix_spacing_issues(
+							    contents=issue_details)
+							issue_details = make_me_pretty.remove_lxml_markup(
+							    contents=issue_details)
 							if not issue.find('issueDetailItems') == None:
 								for item_detail in issue.find('issueDetailItems').iter('issueDetailItem'):
 									new_detail = unicodedata.normalize("NFKD", item_detail.text)
@@ -353,8 +368,8 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 									new_detail = make_me_pretty.remove_lxml_markup(contents=new_detail)
 									issue_details += "\n" + new_detail
 						#
-						#	some burp extensions do not populate the background, remediation, and other fields properly
-						#		and instead throw everything into 'issueDetail'
+						# some burp extensions do not populate the background, remediation, and other fields properly
+						# and instead throw everything into 'issueDetail'
 						#
 						if background == "":
 							background = issue_details
@@ -367,23 +382,25 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 								if request.get('base64') == "true":
 									requestresponse[str(request_count)]['request'] = request.text
 								else:
-									requestresponse[str(request_count)]['request'] = base64.b64encode(request.text.encode('utf-8', 'ignore'))
+									requestresponse[str(request_count)]['request'] = base64.b64encode(
+									    request.text.encode('utf-8', 'ignore'))
 								request_count += 1
 							for response in issue.find('requestresponse').iter('response'):
 								if response.get('base64') == "true":
 									requestresponse[str(response_count)]['response'] = response.text
 								else:
-									requestresponse[str(response_count)]['response'] = base64.b64encode(response.text.encode('utf-8', 'ignore'))
+									requestresponse[str(response_count)]['response'] = base64.b64encode(
+									    response.text.encode('utf-8', 'ignore'))
 								response_count += 1
 						#
-						#	now that we have all the data, add it to all_issues with user-friendly field names as keys
+						# now that we have all the data, add it to all_issues with user-friendly field names as keys
 						new_issue = {}
 						new_issue['Serial Number'] = serial_number
 						new_issue['Vulnerability Name'] = name
 						new_issue['Background'] = background
 						#
-						#	might be fun to determine a product name for common apps, but that is for another day
-						#	just a placeholder for now
+						# might be fun to determine a product name for common apps, but that is for another day
+						# just a placeholder for now
 						new_issue['Product Name'] = ""
 						new_issue['Remediation'] = remediation
 						new_issue['References'] = references
@@ -428,11 +445,19 @@ def parse_files(file_list, risk_excluded=[], risk_included=[]):
 #
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
-	parser.add_argument("-d", help="Location of the directory in which the Burp issues XML files are stored (all .xml files will be opened).")
-	parser.add_argument("-f", help="Name of the single Burp file you want to parse. Ignored if '-d' option is used.")
-	parser.add_argument("-e", help="('-e <comma,separated,list>') List of risk ratings to exclude from output; partial starting characters accepted; no spaces (default == none excluded).")
-	parser.add_argument("-i", help="('-i <comma,separated,list>') List of severity ratings to include in output; partial starting characters accepted; no spaces (default == include all).")
-	parser.add_argument("-o", help="Base name of output file(s) to which you want the parsed results to be written.")
+	parser.add_argument(
+	    "-d", help="Location of the directory in which the Burp issues XML files are stored (all .xml files will be opened).")
+	parser.add_argument(
+	    "-f", help="Name of the single Burp file you want to parse. Ignored if '-d' option is used.")
+	parser.add_argument(
+	    "-e", help="('-e <comma,separated,list>') List of risk ratings to exclude from output; partial starting characters accepted; no spaces (default == none excluded).")
+	parser.add_argument(
+	    "-i", help="('-i <comma,separated,list>') List of severity ratings to include in output; partial starting characters accepted; no spaces (default == include all).")
+	parser.add_argument(
+	    "-o", help="Base name of output file(s) to which you want the parsed results to be written.")
+	# Add a command-line option for CSV output
+	parser.add_argument(
+	    "-c", help="Save parsed data (only the issues, not charts) as CSV file")
 	args = parser.parse_args()
 
 	print("\n\n" + breathmint_logo() + "\n\nRunning breathmint\n...\n")
@@ -512,42 +537,60 @@ if __name__ == '__main__':
 		sys.exit()
 
 	#
-	#	all_issues format:
-	#	[
-	#		{
-	#			'Serial Number':"<<serialNumber>>",
-	#			'Vulnerability Name':"<<name>>",
-	#			'Background':"<<issueBackground>>",
-	#			'Product Name':"",
-	#			'Remediation':"<<remediationBackground>>",
-	#			'References':[{'url':"<<reference_0_url>>", 'displaytext':"<<reference_0_displaytext>>"}, ..., {'url':"<<reference_n_url>>", 'displaytext':"<<reference_n_displaytext>>"}],
-	#			'Classification':"<<vulnerabilityClassifications>>",
-	#			'Risk':"<<risk>> == severity | RISK_SYNONYM_MAPPING[severity]",		(trying to enforce a common set of risk ratings)
-	#			'Severity':"<<severity>>",
-	#			'Confidence':"<<confidence>>",
-	#			'IP':"<<host ip>>",
-	#			'URI':"<<host>>",
-	#			'FQDN':"<<extracted_from_URI>>",
-	#			'Port':"<<port>>",
-	#			'Protocol':"<<http|https>>",		(probably http or https)
-	#			'Path':"<<path>>",
-	#			'Location':"<<location>>",
-	#			'Target Details':["<<issueDetailItem_0>>", ..., "<<issueDetailItem_n>>"],
-	#			'Issue Details':"<<issueDetail>>",
-	#			'Request Response':{
-	#				'0':{ 'request':"<<base64(request)>>", 'response':"<<base64(response)>>", 'redirected':True|False(<<responseRedirected>>) }, ...,
-	#				'n':{ 'request':"<<base64(request)>>", 'response':"<<base64(response)>>", 'redirected':True|False(<<responseRedirected>>) }
-	#			}
-	#		},
-	#		...,
-	#		{'Serial Number':"<<serialNumber>>", ..., 'Request Response':{}}
-	#	]
+	# all_issues format:
+	# [
+	# {
+	# 'Serial Number':"<<serialNumber>>",
+	# 'Vulnerability Name':"<<name>>",
+	# 'Background':"<<issueBackground>>",
+	# 'Product Name':"",
+	# 'Remediation':"<<remediationBackground>>",
+	# 'References':[{'url':"<<reference_0_url>>", 'displaytext':"<<reference_0_displaytext>>"}, ..., {'url':"<<reference_n_url>>", 'displaytext':"<<reference_n_displaytext>>"}],
+	# 'Classification':"<<vulnerabilityClassifications>>",
+	# 'Risk':"<<risk>> == severity | RISK_SYNONYM_MAPPING[severity]",		(trying to enforce a common set of risk ratings)
+	# 'Severity':"<<severity>>",
+	# 'Confidence':"<<confidence>>",
+	# 'IP':"<<host ip>>",
+	# 'URI':"<<host>>",
+	# 'FQDN':"<<extracted_from_URI>>",
+	# 'Port':"<<port>>",
+	# 'Protocol':"<<http|https>>",		(probably http or https)
+	# 'Path':"<<path>>",
+	# 'Location':"<<location>>",
+	# 'Target Details':["<<issueDetailItem_0>>", ..., "<<issueDetailItem_n>>"],
+	# 'Issue Details':"<<issueDetail>>",
+	# 'Request Response':{
+	# '0':{ 'request':"<<base64(request)>>", 'response':"<<base64(response)>>", 'redirected':True|False(<<responseRedirected>>) }, ...,
+	# 'n':{ 'request':"<<base64(request)>>", 'response':"<<base64(response)>>", 'redirected':True|False(<<responseRedirected>>) }
+	# }
+	# },
+	# ...,
+	# {'Serial Number':"<<serialNumber>>", ..., 'Request Response':{}}
+	# ]
 	#
 	all_issues = []
 	try:
-		all_issues = parse_files(file_list=file_list, risk_excluded=risk_excluded, risk_included=risk_included)
+		all_issues = parse_files(
+		    file_list=file_list, risk_excluded=risk_excluded, risk_included=risk_included)
 		if all_issues == []:
 			print("ERROR: breathmint.__main__: parse_files returned a blank result")
+		elif args.c:
+			csv_filename = args.c
+			print("Saving parsed data as CSV:", csv_filename)
+			try:
+				# Collect all unique field names from the dictionaries
+				fieldnames = set()
+				for issue in all_issues:
+					fieldnames.update(issue.keys())
+				with open(csv_filename, mode='w', newline='') as csv_file:
+					writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+					writer.writeheader()
+					for issue in all_issues:
+						writer.writerow(issue)
+				print("CSV file saved successfully:", csv_filename)
+				sys.exit()
+			except Exception as e:
+				print("ERROR: Failed to save CSV file:", e)
 		else:
 			print("<< Generating output files >>")
 			#
